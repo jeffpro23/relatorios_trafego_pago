@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Relatório Trimestral de Performance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<script>
+/* ============================================================
+   ✏️  PREENCHA AQUI OS DADOS DO CLIENTE
+   ============================================================ */
+const RELATORIO = {
+
+  trimestre: "Q1 2026",          /* Ex: "Q1 2026", "Q2 2026" */
+  periodo:   "Janeiro — Março",  /* Período por extenso */
+
+  /* ── MÊS 1 ── */
+  mes1: {
+    nome:        "Janeiro",
+    conversoes:  120,
+    contatos:    35,
+    vendas:      1,
+    faturamento: 1900,
+    investAds:   718,
+    maoDeObra:   1200,
+  },
+
+  /* ── MÊS 2 ── */
+  mes2: {
+    nome:        "Fevereiro",
+    conversoes:  91,
+    contatos:    24,
+    vendas:      2,
+    faturamento: 4220,
+    investAds:   569,
+    maoDeObra:   1200,
+  },
+
+  /* ── MÊS 3 ── */
+  mes3: {
+    nome:        "Março",
+    conversoes:  134,
+    contatos:    41,
+    vendas:      5,
+    faturamento: 9800,
+    investAds:   690,
+    maoDeObra:   1200,
+  },
+
+  taxaMeta: 0.15,  /* taxa de fechamento desejada (ex: 0.15 = 15%) */
+};
+/* ============================================================
+   FIM DA CONFIGURAÇÃO — não edite abaixo desta linha
+   ============================================================ */
+</script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #f4f4f0; color: #1a1a1a; padding: 2rem 1.25rem; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 940px; margin: 0 auto; }
+
+  /* ── Header ── */
+  .header { background: #0f1923; padding: 2rem 2rem 1.5rem; border-radius: 16px; margin-bottom: 1.5rem; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+  .header::before { content:''; position:absolute; right:-40px; top:-40px; width:220px; height:220px; border-radius:50%; background:rgba(22,199,132,0.08); }
+  .header::after  { content:''; position:absolute; right:60px; bottom:-60px; width:160px; height:160px; border-radius:50%; background:rgba(22,199,132,0.05); }
+  .header-tag   { font-size:11px; font-weight:500; letter-spacing:0.12em; color:#16C784; text-transform:uppercase; margin-bottom:8px; }
+  .header-title { font-family:'Syne',sans-serif; font-size:clamp(20px,3vw,26px); font-weight:700; color:#fff; margin:0 0 4px; }
+  .header-sub   { font-size:13px; color:rgba(255,255,255,0.45); }
+  .header-badge { background:rgba(22,199,132,0.15); border:1px solid rgba(22,199,132,0.3); border-radius:8px; padding:6px 14px; font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:#16C784; white-space:nowrap; }
+
+  /* ── Tabs ── */
+  .tabs-wrap { display:flex; gap:6px; margin-bottom:1.5rem; background:#e8e8e3; border-radius:12px; padding:5px; }
+  .tab-btn {
+    flex:1; border:none; background:transparent; cursor:pointer;
+    font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500;
+    color:#888; padding:9px 8px; border-radius:8px;
+    transition: background 0.18s, color 0.18s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color:#1a1a1a; }
+  .tab-btn.active { background:#fff; color:#1a1a1a; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .tab-btn.active.consolidado { background:#0f1923; color:#16C784; }
+
+  /* ── Tab panels ── */
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  /* ── Layout ── */
+  .section-label { font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin:0 0 12px; }
+  .grid4       { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+  .grid2-inner { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-bottom:1rem; }
+  .grid3, .grid3-evol { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:1.5rem; }
+  .grid3-pot           { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; }
+
+  .card        { background:#fff; border:0.5px solid rgba(0,0,0,0.1); border-radius:14px; padding:1.25rem; min-width:0; }
+  .metric-card { background:#f4f4f0; border-radius:10px; padding:0.9rem; min-width:0; }
+  .metric-label{ font-size:12px; color:#666; margin:0 0 5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .metric-val  { font-family:'Syne',sans-serif; font-size:clamp(15px,2.2vw,22px); font-weight:700; color:#1a1a1a; line-height:1.1; word-break:break-word; }
+  .metric-sub  { font-size:11px; color:#888; margin:4px 0 0; }
+
+  .tag-good { display:inline-block; font-size:10px; font-weight:500; background:#E1F8EE; color:#0a6640; border-radius:4px; padding:2px 7px; white-space:nowrap; }
+  .tag-warn { display:inline-block; font-size:10px; font-weight:500; background:#FFF3E0; color:#7c4d00; border-radius:4px; padding:2px 7px; white-space:nowrap; }
+
+  .month-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:#1a1a1a; margin:0 0 1.5rem; display:flex; align-items:center; gap:10px; }
+  .month-pill  { font-size:11px; font-weight:500; padding:3px 10px; border-radius:20px; }
+  .m1-pill { background:#E6F1FB; color:#0C447C; }
+  .m2-pill { background:#E1F5EE; color:#085041; }
+  .m3-pill { background:#F5EAD4; color:#7c4d00; }
+
+  .divider { border:none; border-top:0.5px solid rgba(0,0,0,0.1); margin:1.1rem 0; }
+
+  /* ── Funnel ── */
+  .funnel-wrap { display:flex; flex-direction:column; gap:5px; }
+  .funnel-row  { display:flex; align-items:center; gap:8px; }
+  .funnel-label{ font-size:11px; color:#666; width:76px; min-width:76px; text-align:right; flex-shrink:0; }
+  .funnel-bar-bg { flex:1; min-width:0; background:#f4f4f0; border-radius:4px; height:24px; overflow:hidden; }
+  .funnel-bar  { height:100%; border-radius:4px; display:flex; align-items:center; padding:0 8px; }
+  .funnel-bar span { font-size:11px; font-weight:500; color:#fff; white-space:nowrap; }
+  .funnel-pct  { font-size:11px; color:#666; width:44px; min-width:44px; text-align:right; flex-shrink:0; }
+  .arrow-down  { text-align:center; font-size:14px; color:#aaa; line-height:1; margin:1px 0; }
+
+  .cpl-row { display:flex; gap:8px; }
+  .cpl-row .metric-card { flex:1; min-width:0; padding:0.7rem; }
+
+  /* ── Insight boxes ── */
+  .insight-box   { border-left:3px solid; border-radius:0 8px 8px 0; padding:10px 14px; margin-bottom:10px; }
+  .insight-ok    { background:#D1F5E4; border-color:#0F6E56; }
+  .insight-warn  { background:#FFE8B2; border-color:#BA7517; }
+  .insight-strong{ background:#C8DEFA; border-color:#185FA5; }
+  .insight-ok    p { font-size:13px; color:#0a3d28; line-height:1.5; }
+  .insight-warn  p { font-size:13px; color:#5a3000; line-height:1.5; }
+  .insight-strong p { font-size:13px; color:#042C53; line-height:1.5; }
+  .insight-ok strong, .insight-warn strong, .insight-strong strong { font-weight:500; }
+
+  /* ── Potential ── */
+  .potential-card { background:#0f1923; border-radius:14px; padding:1.5rem; color:#fff; margin-bottom:1.5rem; }
+  .pot-label { font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.45); margin:0 0 4px; }
+  .pot-val   { font-family:'Syne',sans-serif; font-size:clamp(20px,3vw,28px); font-weight:700; color:#16C784; margin:0 0 2px; word-break:break-word; }
+  .pot-desc  { font-size:12px; color:rgba(255,255,255,0.5); }
+
+  /* ── Chart ── */
+  .chart-wrap { background:#fff; border-radius:14px; border:0.5px solid rgba(0,0,0,0.1); padding:1.25rem; margin-bottom:1.5rem; }
+  .legend     { display:flex; gap:16px; margin-bottom:12px; font-size:12px; color:#666; flex-wrap:wrap; align-items:center; }
+  .legend-dot { width:10px; height:10px; border-radius:2px; display:inline-block; margin-right:4px; vertical-align:middle; }
+  .chart-canvas-wrap { position:relative; width:100%; height:220px; }
+
+  /* ── Evolução (consolidado) ── */
+  .evol-card { background:#fff; border:0.5px solid rgba(0,0,0,0.1); border-radius:14px; padding:1.25rem; min-width:0; }
+  .evol-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+  .evol-mes  { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; color:#1a1a1a; }
+  .evol-roi  { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; }
+  .evol-row  { display:flex; justify-content:space-between; padding:5px 0; border-bottom:0.5px solid rgba(0,0,0,0.06); font-size:12px; }
+  .evol-row:last-child { border:none; }
+  .evol-key  { color:#888; }
+  .evol-val  { font-weight:500; color:#1a1a1a; }
+
+  /* ── Action cards ── */
+  .action-card  { background:#fff; border:0.5px solid rgba(0,0,0,0.1); border-radius:0 0 14px 14px; padding:1rem 1.1rem; min-width:0; }
+  .action-title { font-size:13px; font-weight:500; margin:0 0 6px; color:#1a1a1a; }
+  .action-desc  { font-size:12px; color:#666; line-height:1.5; }
+
+  /* ── Trend indicator ── */
+  .trend-up   { color:#0F6E56; font-size:11px; font-weight:500; }
+  .trend-down { color:#A32D2D; font-size:11px; font-weight:500; }
+  .trend-neu  { color:#888;    font-size:11px; font-weight:500; }
+
+  /* ── Responsive ── */
+  @media (max-width:700px) {
+    .grid4     { grid-template-columns:1fr 1fr; }
+    .grid3     { grid-template-columns:1fr; }
+    .grid3-pot { grid-template-columns:1fr 1fr; }
+    .grid3-evol{ grid-template-columns:1fr; }
+    .tabs-wrap { flex-wrap:wrap; }
+    .tab-btn   { flex:none; width:calc(50% - 3px); }
+  }
+  @media (max-width:440px) {
+    body { padding:1rem 0.75rem; }
+    .funnel-label { width:64px; min-width:64px; font-size:10px; }
+    .funnel-pct   { width:36px; min-width:36px; font-size:10px; }
+    .tab-btn      { width:100%; }
+    .grid3-pot    { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { background:#fff; padding:0; }
+    .tabs-wrap { display:none; }
+    .tab-panel { display:block !important; }
+    .header { border-radius:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .card, .metric-card, .potential-card, .chart-wrap, .evol-card { -webkit-print-color-adjust:exact; print-color-adjust:exact; page-break-inside:avoid; }
+    .chart-wrap { page-break-inside:avoid; }
+  }
+</style>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <p class="header-tag">Relatório Trimestral de Performance</p>
+      <h1 class="header-title">Gestão de Tráfego Pago</h1>
+      <p class="header-sub" id="header-periodo"></p>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex-shrink:0; position:relative; z-index:1;">
+      <span class="header-badge" id="header-trimestre"></span>
+      <label for="logo-upload" style="cursor:pointer;">
+<div id="logo-placeholder" style="width:100px; height:48px; border:1.5px dashed rgba(255,255,255,0.2); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;">          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span style="font-size:9px; color:rgba(255,255,255,0.3); font-family:'DM Sans',sans-serif;">Logo do cliente</span>
+        </div>
+        <img id="logo-preview" alt="Logo" style="display:none; max-width:100px; max-height:48px; object-fit:contain; border-radius:6px;"/>
+      </label>
+      <input type="file" id="logo-upload" accept="image/*" style="display:none;"/>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-wrap" id="tabs-wrap" role="tablist"></div>
+
+  <!-- Painéis de mês (gerados via JS) -->
+  <div id="panels-meses"></div>
+
+  <!-- Painel consolidado -->
+  <div class="tab-panel" id="panel-consolidado" role="tabpanel">
+
+    <p class="section-label">Visão geral do trimestre</p>
+    <div class="grid4" id="grid-geral"></div>
+
+    <p class="section-label">Evolução mensal</p>
+    <div class="grid3-evol" id="grid-evol"></div>
+
+    <div class="chart-wrap">
+      <div class="legend">
+        <span><span class="legend-dot" style="background:#B5D4F4"></span>Investimento</span>
+        <span><span class="legend-dot" style="background:#5DCAA5"></span>Faturamento</span>
+        <span style="margin-left:auto; font-size:11px; color:#aaa;">comparativo mensal</span>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chartBar"></canvas></div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="legend">
+        <span><span class="legend-dot" style="background:#378ADD; border-radius:50%;"></span>Taxa de contato</span>
+        <span><span class="legend-dot" style="background:#16C784; border-radius:50%;"></span>Taxa de fechamento</span>
+        <span style="margin-left:auto; font-size:11px; color:#aaa;">evolução do funil</span>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chartFunil"></canvas></div>
+    </div>
+
+    <p class="section-label">Diagnóstico trimestral</p>
+    <div style="margin-bottom:1.5rem" id="diagnostico-trim"></div>
+
+    <p class="section-label">Potencial com melhoria no comercial</p>
+    <div class="potential-card">
+      <p style="font-size:13px; color:rgba(255,255,255,0.5); margin-bottom:1rem" id="pot-subtitulo"></p>
+      <div class="grid3-pot" id="grid-pot"></div>
+    </div>
+
+    <p class="section-label" style="margin-top:1.5rem">Próximas ações recomendadas</p>
+    <div class="grid3">
+      <div class="action-card" style="border-top:3px solid #378ADD;">
+        <p class="action-title">Processo de follow-up</p>
+        <p class="action-desc">Criar sequência de contatos para leads que não responderam na primeira abordagem.</p>
+      </div>
+      <div class="action-card" style="border-top:3px solid #1D9E75;">
+        <p class="action-title">Qualificação do lead</p>
+        <p class="action-desc">Definir perguntas de qualificação para priorizar os leads com maior potencial de fechar.</p>
+      </div>
+      <div class="action-card" style="border-top:3px solid #EF9F27;">
+        <p class="action-title">Velocidade no atendimento</p>
+        <p class="action-desc">Reduzir o tempo de resposta ao primeiro contato — leads esfriam rapidamente.</p>
+      </div>
+    </div>
+
+  </div><!-- /panel-consolidado -->
+
+</div><!-- /container -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+/* ── Helpers ── */
+const brl  = v => 'R$\u00a0' + Math.round(v).toLocaleString('pt-BR');
+const brl2 = v => 'R$\u00a0' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const pct  = v => (v * 100).toFixed(1).replace('.',',') + '%';
+const fmt  = v => v.toLocaleString('pt-BR');
+const roiFmt = v => (v >= 0 ? '+' : '') + (v * 100).toFixed(1).replace('.',',') + '%';
+const trend = (cur, prev) => cur > prev ? '▲' : cur < prev ? '▼' : '—';
+const trendClass = (cur, prev) => cur > prev ? 'trend-up' : cur < prev ? 'trend-down' : 'trend-neu';
+
+/* ── Enrich month data ── */
+function enrich(m) {
+  m.investTotal   = m.investAds + m.maoDeObra;
+  m.lucro         = m.faturamento - m.investTotal;
+  m.roi           = m.lucro / m.investTotal;
+  m.cpl           = m.investAds / m.conversoes;
+  m.cpc           = m.investAds / m.contatos;
+  m.txContato     = m.contatos / m.conversoes;
+  m.txFechamento  = m.vendas / m.contatos;
+  return m;
+}
+
+const d  = RELATORIO;
+const meses = [enrich(d.mes1), enrich(d.mes2), enrich(d.mes3)];
+const pillClasses = ['m1-pill','m2-pill','m3-pill'];
+const barColors   = [
+  ['#378ADD','#185FA5','#A32D2D'],
+  ['#1D9E75','#0F6E56','#085041'],
+  ['#BA7517','#854F0B','#633806'],
+];
+
+/* ── Totals ── */
+const totalFat    = meses.reduce((s,m) => s + m.faturamento, 0);
+const totalInvest = meses.reduce((s,m) => s + m.investTotal, 0);
+const totalAds    = meses.reduce((s,m) => s + m.investAds, 0);
+const totalConv   = meses.reduce((s,m) => s + m.conversoes, 0);
+const totalCont   = meses.reduce((s,m) => s + m.contatos, 0);
+const totalVendas = meses.reduce((s,m) => s + m.vendas, 0);
+const totalLucro  = totalFat - totalInvest;
+const totalROI    = totalLucro / totalInvest;
+const ticketMedio = totalFat / totalVendas;
+const cplMedio    = totalAds / totalConv;
+
+const vendaPot  = Math.round(totalCont * d.taxaMeta);
+const fatPot    = Math.round(vendaPot * ticketMedio);
+
+/* ── Header ── */
+document.getElementById('header-periodo').textContent    = d.periodo + ' · Análise trimestral do funil';
+document.getElementById('header-trimestre').textContent  = d.trimestre;
+
+/* ── Build tabs & month panels ── */
+const tabsWrap   = document.getElementById('tabs-wrap');
+const panelsMeses = document.getElementById('panels-meses');
+
+meses.forEach((m, i) => {
+  /* Tab button */
+  const btn = document.createElement('button');
+  btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+  btn.dataset.tab = 'mes-' + i;
+  btn.textContent = m.nome;
+  btn.setAttribute('role', 'tab');
+  btn.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+  btn.setAttribute('aria-controls', 'panel-mes-' + i);
+  tabsWrap.appendChild(btn);
+
+  const w2 = Math.max((m.txContato * 100).toFixed(1), 4);
+  const w3 = Math.max(((m.txFechamento * m.txContato) * 100).toFixed(1), 4);
+  const bc  = barColors[i];
+  const tagClass = m.roi >= 0 ? 'tag-good' : 'tag-warn';
+
+  const panel = document.createElement('div');
+  panel.className = 'tab-panel' + (i === 0 ? ' active' : '');
+  panel.id = 'panel-mes-' + i;
+  panel.setAttribute('role', 'tabpanel');
+  panel.innerHTML = `
+    <div class="month-title">
+      ${m.nome}
+      <span class="month-pill ${pillClasses[i]}">${d.trimestre}</span>
+    </div>
+
+    <p class="section-label">Resultados do mês</p>
+    <div class="grid4" style="margin-bottom:1.5rem">
+      <div class="metric-card"><p class="metric-label">Faturamento</p><p class="metric-val">${brl(m.faturamento)}</p><p class="metric-sub">no mês</p></div>
+      <div class="metric-card"><p class="metric-label">Lucro</p><p class="metric-val" style="color:${m.lucro>=0?'#0F6E56':'#A32D2D'}">${brl(m.lucro)}</p><p class="metric-sub">após custos</p></div>
+      <div class="metric-card"><p class="metric-label">ROI</p><p class="metric-val" style="color:${m.roi>=0?'#0F6E56':'#A32D2D'}">${roiFmt(m.roi)}</p><p class="metric-sub">retorno sobre invest.</p></div>
+      <div class="metric-card"><p class="metric-label">Investimento</p><p class="metric-val">${brl(m.investTotal)}</p><p class="metric-sub">ads + mão de obra</p></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:1.5rem">
+
+      <div class="card">
+        <p class="section-label" style="margin:0 0 1rem">Funil de conversão</p>
+        <div class="funnel-wrap">
+          <div class="funnel-row">
+            <span class="funnel-label">Conversões</span>
+            <div class="funnel-bar-bg"><div class="funnel-bar" style="width:100%;background:${bc[0]}"><span>${fmt(m.conversoes)} leads</span></div></div>
+            <span class="funnel-pct">100%</span>
+          </div>
+          <div class="arrow-down">↓</div>
+          <div class="funnel-row">
+            <span class="funnel-label">Contatos</span>
+            <div class="funnel-bar-bg"><div class="funnel-bar" style="width:${w2}%;background:${bc[1]}"><span>${fmt(m.contatos)}</span></div></div>
+            <span class="funnel-pct">${pct(m.txContato)}</span>
+          </div>
+          <div class="arrow-down">↓</div>
+          <div class="funnel-row">
+            <span class="funnel-label">Vendas</span>
+            <div class="funnel-bar-bg"><div class="funnel-bar" style="width:${w3}%;background:${bc[2]};min-width:28px"><span>${fmt(m.vendas)}</span></div></div>
+            <span class="funnel-pct">${pct(m.txFechamento)}</span>
+          </div>
+        </div>
+        <hr class="divider">
+        <div class="cpl-row">
+          <div class="metric-card"><p class="metric-label">CPL (custo/lead)</p><p class="metric-val">${brl2(m.cpl)}</p></div>
+          <div class="metric-card"><p class="metric-label">Custo/contato</p><p class="metric-val">${brl2(m.cpc)}</p></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="section-label" style="margin:0 0 1rem">Métricas do mês</p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div class="metric-card"><p class="metric-label">Conversões</p><p class="metric-val">${fmt(m.conversoes)}</p></div>
+          <div class="metric-card"><p class="metric-label">Contatos efetivos</p><p class="metric-val">${fmt(m.contatos)}</p></div>
+          <div class="metric-card"><p class="metric-label">Vendas fechadas</p><p class="metric-val">${fmt(m.vendas)}</p></div>
+          <div class="metric-card"><p class="metric-label">Ticket médio</p><p class="metric-val">${m.vendas > 0 ? brl(m.faturamento / m.vendas) : '—'}</p></div>
+        </div>
+      </div>
+
+    </div>
+
+    <p class="section-label">Diagnóstico do mês</p>
+    <div style="margin-bottom:1.5rem">
+      <div class="insight-box insight-ok">
+        <p><strong>Custo por lead</strong> — CPL de ${brl2(m.cpl)} no mês. ${m.cpl < 10 ? 'Excelente eficiência no tráfego pago.' : 'Acompanhe a tendência nos próximos meses.'}</p>
+      </div>
+      <div class="insight-box ${m.txFechamento >= 0.10 ? 'insight-ok' : 'insight-warn'}">
+        <p><strong>Taxa de fechamento</strong> — ${pct(m.txFechamento)} de contatos viraram vendas. ${m.txFechamento >= 0.10 ? 'Dentro da faixa ideal (10%–25%).' : 'Abaixo do ideal. Meta: acima de 10%.'}</p>
+      </div>
+      <div class="insight-box insight-strong">
+        <p><strong>Taxa de contato</strong> — ${pct(m.txContato)} dos leads geraram contato efetivo. ${m.txContato >= 0.25 ? 'Boa qualidade de leads.' : 'Revise a qualidade e segmentação dos anúncios.'}</p>
+      </div>
+    </div>
+  `;
+  panelsMeses.appendChild(panel);
+});
+
+/* Tab consolidado */
+const btnConsolidado = document.createElement('button');
+btnConsolidado.className = 'tab-btn consolidado';
+btnConsolidado.dataset.tab = 'consolidado';
+btnConsolidado.textContent = 'Visão consolidada';
+btnConsolidado.setAttribute('role', 'tab');
+btnConsolidado.setAttribute('aria-selected', 'false');
+btnConsolidado.setAttribute('aria-controls', 'panel-consolidado');
+tabsWrap.appendChild(btnConsolidado);
+
+/* ── Tab switching ── */
+tabsWrap.addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
+  const tabId = btn.dataset.tab;
+  const target = tabId === 'consolidado'
+    ? document.getElementById('panel-consolidado')
+    : document.getElementById('panel-' + tabId);
+  if (target) target.classList.add('active');
+  if (tabId === 'consolidado' && !window._chartsBuilt) buildConsolidadoCharts();
+});
+
+/* ── Visão geral ── */
+document.getElementById('grid-geral').innerHTML = `
+  <div class="metric-card"><p class="metric-label">Faturamento total</p><p class="metric-val">${brl(totalFat)}</p><p class="metric-sub">${d.periodo}</p></div>
+  <div class="metric-card"><p class="metric-label">Lucro líquido</p><p class="metric-val">${brl(totalLucro)}</p><p class="metric-sub">após todos os custos</p></div>
+  <div class="metric-card"><p class="metric-label">ROI trimestral</p><p class="metric-val" style="color:${totalROI>=0?'#0F6E56':'#A32D2D'}">${roiFmt(totalROI)}</p><p class="metric-sub">sobre o investimento</p></div>
+  <div class="metric-card"><p class="metric-label">Investimento total</p><p class="metric-val">${brl(totalInvest)}</p><p class="metric-sub">ads + mão de obra</p></div>
+`;
+
+/* ── Evolução mensal cards ── */
+const gridEvol = document.getElementById('grid-evol');
+let evolHtml = '';
+meses.forEach((m, i) => {
+  const prev = meses[i - 1];
+  const roiColor = m.roi >= 0 ? '#0F6E56' : '#A32D2D';
+  evolHtml += `
+    <div class="evol-card">
+      <div class="evol-header">
+        <span class="evol-mes">${m.nome}</span>
+        <span class="evol-roi" style="color:${roiColor}">${roiFmt(m.roi)}</span>
+      </div>
+      <div class="evol-row"><span class="evol-key">Faturamento</span><span class="evol-val">${brl(m.faturamento)} ${prev ? `<span class="${trendClass(m.faturamento,prev.faturamento)}">${trend(m.faturamento,prev.faturamento)}</span>` : ''}</span></div>
+      <div class="evol-row"><span class="evol-key">Leads</span><span class="evol-val">${fmt(m.conversoes)} ${prev ? `<span class="${trendClass(m.conversoes,prev.conversoes)}">${trend(m.conversoes,prev.conversoes)}</span>` : ''}</span></div>
+      <div class="evol-row"><span class="evol-key">Vendas</span><span class="evol-val">${fmt(m.vendas)} ${prev ? `<span class="${trendClass(m.vendas,prev.vendas)}">${trend(m.vendas,prev.vendas)}</span>` : ''}</span></div>
+      <div class="evol-row"><span class="evol-key">CPL</span><span class="evol-val">${brl2(m.cpl)} ${prev ? `<span class="${trendClass(prev.cpl,m.cpl)}">${trend(prev.cpl,m.cpl)}</span>` : ''}</span></div>
+      <div class="evol-row"><span class="evol-key">Tx. fechamento</span><span class="evol-val">${pct(m.txFechamento)} ${prev ? `<span class="${trendClass(m.txFechamento,prev.txFechamento)}">${trend(m.txFechamento,prev.txFechamento)}</span>` : ''}</span></div>
+    </div>
+  `;
+});
+gridEvol.innerHTML = evolHtml;
+
+/* ── Diagnóstico trimestral ── */
+const melhorMes   = meses.reduce((a,b) => b.faturamento > a.faturamento ? b : a);
+const ultimoMes   = meses[meses.length - 1];
+const ultimoTx    = ultimoMes.txFechamento;
+const crescFat    = ultimoMes.faturamento > meses[0].faturamento;
+document.getElementById('diagnostico-trim').innerHTML = `
+  <div class="insight-box insight-ok">
+    <p><strong>Melhor mês do trimestre: ${melhorMes.nome}</strong> — Faturamento de ${brl(melhorMes.faturamento)} com ROI de ${roiFmt(melhorMes.roi)}. Referência para os próximos trimestres.</p>
+  </div>
+  <div class="insight-box ${crescFat ? 'insight-ok' : 'insight-warn'}">
+    <p><strong>${crescFat ? 'Tendência de crescimento' : 'Atenção à tendência'}</strong> — Faturamento ${crescFat ? 'cresceu' : 'caiu'} de ${brl(meses[0].faturamento)} em ${meses[0].nome} para ${brl(ultimoMes.faturamento)} em ${ultimoMes.nome} ao longo do trimestre.</p>
+  </div>
+  <div class="insight-box ${ultimoTx >= 0.10 ? 'insight-ok' : 'insight-warn'}">
+    <p><strong>Gargalo no comercial</strong> — CPL médio trimestral de ${brl2(cplMedio)} está eficiente. A taxa de fechamento encerrou o trimestre em ${pct(ultimoTx)}. ${ultimoTx >= 0.10 ? 'Na faixa ideal.' : 'Meta: superar 10% no próximo trimestre.'}</p>
+  </div>
+  <div class="insight-box insight-strong">
+    <p><strong>Custo por lead estável</strong> — Variação entre ${brl2(Math.min(...meses.map(m=>m.cpl)))} e ${brl2(Math.max(...meses.map(m=>m.cpl)))} no trimestre. Campanha bem calibrada.</p>
+  </div>
+`;
+
+/* ── Potencial ── */
+document.getElementById('pot-subtitulo').textContent =
+  `Com os mesmos ${fmt(totalCont)} contatos do trimestre e taxa de fechamento de ${Math.round(d.taxaMeta * 100)}%:`;
+document.getElementById('grid-pot').innerHTML = `
+  <div><p class="pot-label">Vendas estimadas</p><p class="pot-val">${vendaPot}</p><p class="pot-desc">vs ${totalVendas} realizadas</p></div>
+  <div><p class="pot-label">Ticket médio</p><p class="pot-val">${brl(Math.round(ticketMedio))}</p><p class="pot-desc">base histórica</p></div>
+  <div><p class="pot-label">Faturamento potencial</p><p class="pot-val">${brl(fatPot)}</p><p class="pot-desc">mesmo investimento em ads</p></div>
+`;
+
+/* ── Charts (only built when consolidado tab is opened) ── */
+function buildConsolidadoCharts() {
+  window._chartsBuilt = true;
+  new Chart(document.getElementById('chartBar'), {
+    type: 'bar',
+    data: {
+      labels: meses.map(m => m.nome),
+      datasets: [
+        { label:'Investimento', data: meses.map(m => m.investTotal), backgroundColor:'#B5D4F4', borderRadius:6 },
+        { label:'Faturamento',  data: meses.map(m => m.faturamento),  backgroundColor:'#5DCAA5', borderRadius:6 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ctx.dataset.label+': R$ '+ctx.parsed.y.toLocaleString('pt-BR') } } },
+      scales: {
+        x:{ grid:{display:false}, ticks:{font:{size:13}} },
+        y:{ grid:{color:'rgba(0,0,0,0.06)'}, ticks:{ callback: v => 'R$ '+v.toLocaleString('pt-BR'), font:{size:11} } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('chartFunil'), {
+    type: 'line',
+    data: {
+      labels: meses.map(m => m.nome),
+      datasets: [
+        {
+          label:'Taxa de contato',
+          data: meses.map(m => parseFloat((m.txContato * 100).toFixed(1))),
+          borderColor:'#378ADD', backgroundColor:'rgba(55,138,221,0.08)',
+          tension:0.4, fill:true, pointRadius:5, pointBackgroundColor:'#378ADD'
+        },
+        {
+          label:'Taxa de fechamento',
+          data: meses.map(m => parseFloat((m.txFechamento * 100).toFixed(1))),
+          borderColor:'#16C784', backgroundColor:'rgba(22,199,132,0.08)',
+          tension:0.4, fill:true, pointRadius:5, pointBackgroundColor:'#16C784'
+        }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ctx.dataset.label+': '+ctx.parsed.y.toFixed(1).replace('.',',')+'%' } } },
+      scales: {
+        x:{ grid:{display:false}, ticks:{font:{size:13}} },
+        y:{ grid:{color:'rgba(0,0,0,0.06)'}, ticks:{ callback: v => v+'%', font:{size:11} }, min:0 }
+      }
+    }
+  });
+}
+
+/* ── Logo upload ── */
+document.getElementById('logo-upload').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('logo-preview').src = e.target.result;
+    document.getElementById('logo-preview').style.display = 'block';
+    document.getElementById('logo-placeholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+});
+</script>
+</body>
+</html>
